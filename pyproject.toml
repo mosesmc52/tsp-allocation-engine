@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "tsp-allocation-engine"
+version = "0.1.0"
+description = ""
+authors = ["Moses McCall <mosesmc52@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+boto3 = "^1.43.80"
+python-dotenv = "^1.2.3"
+pandas = "^3.0.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
