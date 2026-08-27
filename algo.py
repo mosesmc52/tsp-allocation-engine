@@ -6,9 +6,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-
 from helpers import run_single_iteration, send_email_result
-
 
 load_dotenv()
 
@@ -25,7 +23,7 @@ MANUAL_WEIGHTS = {
 LOOKBACKS = {"C Fund": 150, "F Fund": 80, "I Fund": 80, "S Fund": 100}
 FALLBACK_FUND = "G Fund"
 VOL_LOOKBACK = 40
-TARGET_ANNUAL_VOL = 0.14
+TARGET_ANNUAL_VOL = 0.2
 TRADING_DAYS = 252
 VOLATILITY_POWER = 1.0
 MAX_GROSS_EXPOSURE = 1.0
@@ -57,9 +55,12 @@ if __name__ == "__main__":
         print("Recommended allocation:")
         for fund, weight in result["allocation"].items():
             print(f"  {fund}: {weight:.2%}")
-        print("Trend signal: " + ", ".join(
-            f"{fund}={'ON' if value else 'OFF'}"
-            for fund, value in result["signals"].items()
-        ))
+        print(
+            "Trend signal: "
+            + ", ".join(
+                f"{fund}={'ON' if value else 'OFF'}"
+                for fund, value in result["signals"].items()
+            )
+        )
     if result["status"] == "rebalanced":
         send_email_result(result)
