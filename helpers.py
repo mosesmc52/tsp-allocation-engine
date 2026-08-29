@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 from datetime import date
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
+import requests
 
 from SES import AmazonSES
 
@@ -25,20 +25,18 @@ def load_prices(
     if prices is None:
         data_dir.mkdir(parents=True, exist_ok=True)
         if not cache_path.exists():
-            request = Request(
-                data_url,
-                headers={
-                    "User-Agent": (
-                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/131.0.0.0 Safari/537.36"
-                    ),
-                    "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
-                    "Referer": "https://www.tsp.gov/",
-                },
-            )
-            with urlopen(request, timeout=30) as response:
-                cache_path.write_bytes(response.read())
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/131.0.0.0 Safari/537.36"
+                ),
+                "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
+                "Referer": "https://www.tsp.gov/",
+            }
+            response = requests.get(data_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            cache_path.write_bytes(response.content)
         prices = pd.read_csv(cache_path)
     else:
         prices = prices.copy()
