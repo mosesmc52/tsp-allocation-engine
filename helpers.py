@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 from datetime import date
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
-import requests
 
 from SES import AmazonSES
 
@@ -32,11 +32,11 @@ def load_prices(
                     "Chrome/131.0.0.0 Safari/537.36"
                 ),
                 "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
-                "Referer": "https://www.tsp.gov/",
+                "Referer": "https://www.tspfolio.com/",
             }
-            response = requests.get(data_url, headers=headers, timeout=30)
-            response.raise_for_status()
-            cache_path.write_bytes(response.content)
+            request = Request(data_url, headers=headers)
+            with urlopen(request, timeout=30) as response:
+                cache_path.write_bytes(response.read())
         prices = pd.read_csv(cache_path)
     else:
         prices = prices.copy()

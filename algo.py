@@ -10,9 +10,9 @@ from helpers import run_single_iteration, send_email_result
 
 load_dotenv()
 
-DATA_URL = "https://www.tsp.gov/data/fund-price-history.csv"
+DATA_URL = "https://www.tspfolio.com/media/md/prices/tsp-share-prices.csv"
 DATA_DIR = Path(os.getenv("TSP_DATA_DIR", "portfolio/data"))
-CACHE_PATH = DATA_DIR / "fund-price-history.csv"
+CACHE_PATH = DATA_DIR / "tsp-share-prices.csv"
 
 MANUAL_WEIGHTS = {
     "F Fund": 0.0,
