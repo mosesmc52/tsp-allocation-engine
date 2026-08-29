@@ -8,10 +8,10 @@ services:
     # Values are read from the shell or Compose's optional project .env file.
     # Listing them this way keeps CI builds working when no .env exists.
     environment:
-      - AWS_REGION
+      - AWS_SES_REGION_NAME
       - AWS_DEFAULT_REGION
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
+      - AWS_SES_ACCESS_KEY_ID
+      - AWS_SES_SECRET_ACCESS_KEY
       - FROM_ADDRESS
       - TO_ADDRESSES
       - EMAIL_POSITIONS

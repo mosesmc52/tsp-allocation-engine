@@ -146,14 +146,14 @@ def send_email_result(result: dict) -> None:
     def env(*names: str) -> str | None:
         return next((os.getenv(name) for name in names if os.getenv(name)), None)
 
-    region = env("AWS_REGION", "AWS_DEFAULT_REGION", "SES_REGION")
-    access_key = env("AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY", "SES_ACCESS_KEY")
-    secret_key = env("AWS_SECRET_ACCESS_KEY", "AWS_SECRET_KEY", "SES_SECRET_KEY")
-    from_address = env("FROM_ADDRESS", "SES_FROM_ADDRESS", "FROM_EMAIL", "EMAIL_FROM")
-    to_addresses = env("TO_ADDRESSES", "SES_TO_ADDRESS", "TO_EMAIL", "EMAIL_TO")
+    region = env("AWS_SES_REGION_NAME")
+    access_key = env("AWS_SES_ACCESS_KEY_ID")
+    secret_key = env("AWS_SES_SECRET_ACCESS_KEY")
+    from_address = env("FROM_ADDRESS")
+    to_addresses = env("TO_ADDRESSES")
     missing = [name for name, value in {
-        "AWS_REGION": region, "AWS_ACCESS_KEY_ID": access_key,
-        "AWS_SECRET_ACCESS_KEY": secret_key, "FROM_ADDRESS": from_address,
+        "AWS_SES_REGION_NAME": region, "AWS_SES_ACCESS_KEY_ID": access_key,
+        "AWS_SES_SECRET_ACCESS_KEY": secret_key, "FROM_ADDRESS": from_address,
         "TO_ADDRESSES": to_addresses,
     }.items() if not value]
     if missing:
