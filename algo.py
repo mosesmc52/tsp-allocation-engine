@@ -27,6 +27,10 @@ TARGET_ANNUAL_VOL = 0.2
 TRADING_DAYS = 252
 VOLATILITY_POWER = 1.0
 MAX_GROSS_EXPOSURE = 1.0
+HIGH_VOL_ADJUSTMENT_ENABLED = True
+HIGH_VOL_THRESHOLD = 1.20
+HIGH_VOL_WEIGHT_MULTIPLIER = 0.70
+HIGH_VOL_REFERENCE_LOOKBACK = 252
 
 if __name__ == "__main__":
     force_rebalance = os.getenv("FORCE_REBALANCE", "false").lower() == "true"
@@ -43,6 +47,10 @@ if __name__ == "__main__":
         trading_days=TRADING_DAYS,
         volatility_power=VOLATILITY_POWER,
         max_gross_exposure=MAX_GROSS_EXPOSURE,
+        high_vol_adjustment_enabled=HIGH_VOL_ADJUSTMENT_ENABLED,
+        high_vol_threshold=HIGH_VOL_THRESHOLD,
+        high_vol_weight_multiplier=HIGH_VOL_WEIGHT_MULTIPLIER,
+        high_vol_reference_lookback=HIGH_VOL_REFERENCE_LOOKBACK,
     )
     print(f"Run status: {result['status']}")
     if result["status"] == "skipped":
@@ -50,6 +58,13 @@ if __name__ == "__main__":
     else:
         print(f"Price date: {result['price_date'].date()}")
         print(f"Target exposure: {result['exposure']:.2%}")
+        print(
+            "High-volatility trigger: "
+            + ", ".join(
+                f"{fund}={'ON' if value else 'OFF'}"
+                for fund, value in result["high_vol_trigger"].items()
+            )
+        )
         if result["portfolio_volatility"] is not None:
             print(f"Portfolio volatility: {result['portfolio_volatility']:.2%}")
         print("Recommended allocation:")

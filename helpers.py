@@ -71,6 +71,10 @@ def latest_allocation(
     trading_days: int,
     volatility_power: float,
     max_gross_exposure: float,
+    high_vol_adjustment_enabled: bool,
+    high_vol_threshold: float,
+    high_vol_weight_multiplier: float,
+    high_vol_reference_lookback: int,
 ) -> dict:
     weights = pd.Series(manual_weights, dtype=float)
     if weights.empty or not np.isfinite(weights).all() or (weights < 0).any():
@@ -89,7 +93,13 @@ def latest_allocation(
         raise ValueError("Each lookback must be at least 2 trading days.")
 
     selected = prices.loc[:, list(dict.fromkeys([*weights.index, fallback_fund]))].dropna()
-    if len(selected) < max(max(configured_lookbacks.values()), vol_lookback) + 2:
+    if high_vol_threshold <= 0:
+        raise ValueError("HIGH_VOL_THRESHOLD must be greater than 0.")
+    if not 0 < high_vol_weight_multiplier <= 1:
+        raise ValueError("HIGH_VOL_WEIGHT_MULTIPLIER must be greater than 0 and at most 1.")
+    if high_vol_reference_lookback < vol_lookback:
+        raise ValueError("HIGH_VOL_REFERENCE_LOOKBACK must be at least VOL_LOOKBACK.")
+    if len(selected) < max(max(configured_lookbacks.values()), high_vol_reference_lookback) + 2:
         raise ValueError("Not enough history for the configured lookbacks.")
 
     returns = selected.pct_change().dropna()
@@ -106,9 +116,36 @@ def latest_allocation(
     )
     raw = score.mul(weights, axis=1)
     candidate = raw.div(raw.sum(axis=1).replace(0, np.nan), axis=0).fillna(0.0)
+    # Volatility and tradable returns start one row after the price history.
+    # Keep candidate weights on that same index before applying triggers.
+    candidate = candidate.reindex(returns.index)
     candidate[fallback_fund] = 0.0
     no_signal = raw.sum(axis=1).eq(0)
     candidate.loc[no_signal, fallback_fund] = 1.0
+
+    vol_reference = volatility[weights.index].rolling(
+        high_vol_reference_lookback, min_periods=vol_lookback
+    ).median().shift(1)
+    vol_ratio = volatility[weights.index].div(vol_reference)
+    high_vol_trigger = vol_ratio.ge(high_vol_threshold).fillna(False)
+    if not high_vol_adjustment_enabled:
+        high_vol_trigger.loc[:, :] = False
+
+    def apply_high_vol_adjustment(row: pd.Series) -> pd.Series:
+        triggered = high_vol_trigger.loc[row.name].reindex(row.index).fillna(False)
+        penalized = triggered & row.gt(0)
+        if not penalized.any():
+            return row
+        reduction = (row[penalized] * (1.0 - high_vol_weight_multiplier)).sum()
+        row[penalized] *= high_vol_weight_multiplier
+        recipients = (~penalized) & row.gt(0)
+        if recipients.any() and row[recipients].sum() > 0:
+            row[recipients] += reduction * row[recipients] / row[recipients].sum()
+        else:
+            row[fallback_fund] += reduction
+        return row
+
+    candidate = candidate.apply(apply_high_vol_adjustment, axis=1)
 
     periods = pd.Series(returns.index.to_period("M"), index=returns.index)
     rebalance = periods.ne(periods.shift(1)).fillna(True)
@@ -130,6 +167,7 @@ def latest_allocation(
         "price_date": latest,
         "allocation": allocation,
         "signals": signals.loc[latest],
+        "high_vol_trigger": high_vol_trigger.loc[latest],
         "exposure": float(exposure.loc[latest]),
         "portfolio_volatility": float(portfolio_vol.loc[latest])
         if pd.notna(portfolio_vol.loc[latest]) else None,
@@ -193,6 +231,10 @@ def run_single_iteration(
     trading_days: int,
     volatility_power: float,
     max_gross_exposure: float,
+    high_vol_adjustment_enabled: bool = True,
+    high_vol_threshold: float = 1.20,
+    high_vol_weight_multiplier: float = 0.70,
+    high_vol_reference_lookback: int = 252,
 ) -> dict:
     """Calculate and email one allocation.
 
@@ -218,6 +260,10 @@ def run_single_iteration(
         trading_days=trading_days,
         volatility_power=volatility_power,
         max_gross_exposure=max_gross_exposure,
+        high_vol_adjustment_enabled=high_vol_adjustment_enabled,
+        high_vol_threshold=high_vol_threshold,
+        high_vol_weight_multiplier=high_vol_weight_multiplier,
+        high_vol_reference_lookback=high_vol_reference_lookback,
     )
     result["status"] = "rebalanced"
     return result
