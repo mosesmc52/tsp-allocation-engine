@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSP Signal Update</title>
+</head>
+<body style="margin:0;padding:0;background-color:#EFEAdd;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{PREHEADER}}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#EFEAdd;">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#fff;border:1px solid #E3DDCC;border-radius:10px;overflow:hidden;">
+        <tr><td style="background:#A9790C;height:5px;line-height:5px;font-size:0;">&nbsp;</td></tr>
+        <tr><td style="padding:32px 36px 20px;">
+          <p style="margin:0 0 6px;font: bold 11px 'Courier New',monospace;letter-spacing:2px;color:#A9790C;text-transform:uppercase;">TSP RETIREMENT SAVINGS EXPLORER</p>
+          <h1 style="margin:0;font:600 24px Georgia,serif;line-height:1.3;color:#2B2621;">Your automatic allocation signal</h1>
+          <p style="margin:8px 0 0;font:13px Arial,sans-serif;color:#756E5F;">Price date: <b style="font-family:'Courier New',monospace;color:#2B2621;">{{PRICE_DATE}}</b></p>
+        </td></tr>
+        <tr><td style="padding:0 36px;"><div style="border-top:1px solid #E3DDCC;"></div></td></tr>
+        <tr><td style="padding:24px 36px 8px;"><span style="display:inline-block;background:#EAF3F0;border:1px solid #BFDDD4;border-radius:20px;padding:8px 16px;font:bold 13px Arial,sans-serif;color:#1F7A6C;">● &nbsp;TREND SIGNAL — {{TREND_SIGNAL}}</span></td></tr>
+        <tr><td style="padding:16px 36px 4px;">
+          <p style="margin:0;font:12px Arial,sans-serif;color:#756E5F;text-transform:uppercase;letter-spacing:.6px;">Target market exposure</p>
+          <p style="margin:4px 0 0;font:600 40px Georgia,serif;color:#2B2621;">{{TARGET_EXPOSURE}}</p>
+          <p style="margin:6px 0 0;font:13px Arial,sans-serif;color:#756E5F;line-height:1.5;">{{EXPOSURE_MESSAGE}}</p>
+        </td></tr>
+        <tr><td style="padding:24px 36px 4px;">
+          <p style="margin:0 0 12px;font:12px Arial,sans-serif;color:#756E5F;text-transform:uppercase;letter-spacing:.6px;">Recommended allocation</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-radius:6px;overflow:hidden;margin-bottom:14px;"><tr style="height:14px;">{{ALLOCATION_BAR}}</tr></table>
+          {{ALLOCATION_ROWS}}
+        </td></tr>
+        <tr><td style="padding:20px 36px 0;"><div style="border-top:1px solid #E3DDCC;"></div></td></tr>
+        <tr><td style="padding:20px 36px 32px;"><p style="margin:0;font:11.5px Arial,sans-serif;color:#8C8776;line-height:1.6;">This is an automated summary of a fixed trend-following rule and is not financial advice. Allocations are recalculated each period based on recent trend and volatility and can change without notice. Past performance does not guarantee future results.</p></td></tr>
+        <tr><td style="background:#A9790C;height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
+      </table>
+      <p style="font:11px Arial,sans-serif;color:#A39C8C;margin:16px 0 0;">TSP Retirement Savings Explorer &nbsp;·&nbsp; Sent automatically, no action required</p>
+    </td></tr>
+  </table>
+</body>
+</html>

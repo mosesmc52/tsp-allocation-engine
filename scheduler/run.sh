@@ -13,4 +13,4 @@ exec > >(tee -a "$RUN_LOG_FILE") 2>&1
 
 echo "[$(date)] Running TSP Allocation Engine..."
 cd /app
-exec /usr/local/bin/python /app/algo.py
+exec make send-email

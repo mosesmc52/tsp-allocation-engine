@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from html import escape
 from datetime import date
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -13,6 +14,7 @@ import pandas as pd
 from SES import AmazonSES
 
 MONTH_START_WINDOW_DAYS = 7
+TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "tsp-signal-email.html"
 
 
 def load_prices(
@@ -196,23 +198,47 @@ def send_email_result(result: dict) -> None:
         raise RuntimeError(f"Missing email environment variables: {', '.join(missing)}")
 
     allocation = result["allocation"]
-    lines = [
-        f"Price date: {result['price_date'].date()}",
-        f"Target exposure: {result['exposure']:.2%}",
-        "",
-        "Recommended allocation:",
-    ]
-    lines.extend(f"  {fund}: {weight:.2%}" for fund, weight in allocation.items())
-    lines.append("")
-    lines.append("Trend signal: " + ", ".join(
-        f"{fund}={'ON' if value else 'OFF'}" for fund, value in result["signals"].items()
-    ))
+    signals = result["signals"]
+    active_signals = [fund for fund, value in signals.items() if value]
+    trend_signal = ", ".join(f"{fund}: ON" for fund in active_signals) or "NONE"
+    exposure = result["exposure"]
+    if exposure >= 0.999:
+        exposure_message = "The strategy is fully invested this period."
+    else:
+        exposure_message = "The strategy is scaling market exposure based on recent volatility."
+
+    allocation_bar = []
+    allocation_rows = []
+    for fund, weight in allocation.items():
+        percentage = max(0.0, float(weight) * 100)
+        color = "#A9790C" if fund == "G Fund" else "#1F7A6C"
+        allocation_bar.append(
+            f'<td width="{percentage:.4f}%" style="background-color:{color};height:14px;line-height:14px;font-size:0;">&nbsp;</td>'
+        )
+        allocation_rows.append(
+            '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;">'
+            f'<tr><td style="font:14px Arial,sans-serif;color:#2B2621;"><b>{escape(str(fund))}</b></td>'
+            f'<td align="right" style="font:bold 15px \'Courier New\',monospace;color:{color};">{percentage:.2f}%</td></tr></table>'
+        )
+
+    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+    replacements = {
+        "{{PREHEADER}}": f"Trend signal: {trend_signal} — recommended allocation.",
+        "{{PRICE_DATE}}": str(result["price_date"].date()),
+        "{{TREND_SIGNAL}}": escape(trend_signal),
+        "{{TARGET_EXPOSURE}}": f"{exposure:.2%}",
+        "{{EXPOSURE_MESSAGE}}": exposure_message,
+        "{{ALLOCATION_BAR}}": "".join(allocation_bar),
+        "{{ALLOCATION_ROWS}}": "".join(allocation_rows),
+    }
+    for placeholder, value in replacements.items():
+        template = template.replace(placeholder, value)
+
     ses = AmazonSES(region, access_key, secret_key, from_address)
     subject = f"TSP allocation recommendation - {result['price_date'].date()}"
-    content = "\n".join(lines)
     for to_address in (address.strip() for address in to_addresses.split(",")):
         if to_address:
-            ses.send_text_email(to_address, subject, content)
+            ses.send_html_email(to_address, subject, template)
 
 
 def run_single_iteration(

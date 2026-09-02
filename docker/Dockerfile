@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      cron supervisor tzdata \
+      cron make supervisor tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip --no-cache-dir \
@@ -21,6 +21,8 @@ RUN poetry install --no-interaction --no-root
 
 # Application + cron + supervisor. Secrets are supplied at runtime via .env.
 COPY algo.py helpers.py SES.py /app/
+COPY Makefile /app/Makefile
+COPY templates /app/templates
 COPY scheduler/run.sh /app/run.sh
 COPY scheduler/crontab /etc/cron.d/weekly-job
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
