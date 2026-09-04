@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from calendar import monthrange
+from datetime import date
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -32,6 +34,18 @@ HIGH_VOL_THRESHOLD = 1.20
 HIGH_VOL_WEIGHT_MULTIPLIER = 0.70
 HIGH_VOL_REFERENCE_LOOKBACK = 252
 
+
+def _next_rebalance_date(reference_date: date | None = None) -> date:
+    current = reference_date or date.today()
+    if current.day == monthrange(current.year, current.month)[1]:
+        if current.month == 12:
+            year, month = current.year + 1, 1
+        else:
+            year, month = current.year, current.month + 1
+    else:
+        year, month = current.year, current.month
+    return date(year, month, monthrange(year, month)[1])
+
 if __name__ == "__main__":
     force_rebalance = os.getenv("FORCE_REBALANCE", "false").lower() == "true"
     result = run_single_iteration(
@@ -53,6 +67,7 @@ if __name__ == "__main__":
         high_vol_reference_lookback=HIGH_VOL_REFERENCE_LOOKBACK,
     )
     print(f"Run status: {result['status']}")
+    print(f"Next rebalance date: {_next_rebalance_date().isoformat()}")
     if result["status"] == "skipped":
         print(f"Reason: {result['reason']}")
     else:

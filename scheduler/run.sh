@@ -13,4 +13,6 @@ exec > >(tee -a "$RUN_LOG_FILE") 2>&1
 
 echo "[$(date)] Running TSP Allocation Engine..."
 cd /app
-exec make send-email
+# Scheduled runs must respect the month-end gate. A forced rebalance can still
+# be launched manually with: FORCE_REBALANCE=true poetry run python algo.py
+FORCE_REBALANCE=false exec make send-email

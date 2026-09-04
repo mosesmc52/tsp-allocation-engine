@@ -13,7 +13,6 @@ import pandas as pd
 
 from SES import AmazonSES
 
-MONTH_START_WINDOW_DAYS = 7
 TEMPLATE_PATH = Path(__file__).resolve().parent / "templates" / "tsp-signal-email.html"
 
 
@@ -264,15 +263,15 @@ def run_single_iteration(
 ) -> dict:
     """Calculate and email one allocation.
 
-    The normal run window is the first seven calendar days of each month.
+    The normal run date is the last calendar day of each month.
     ``prices`` and ``run_date`` are optional test hooks that avoid downloading
     data or depending on the system clock.
     """
     current_date = pd.Timestamp(run_date or date.today())
-    if not force_rebalance and current_date.day > MONTH_START_WINDOW_DAYS:
+    if not force_rebalance and not current_date.is_month_end:
         return {
             "status": "skipped",
-            "reason": "outside_month_start_window",
+            "reason": "not_month_end",
             "run_date": current_date.date(),
         }
 
